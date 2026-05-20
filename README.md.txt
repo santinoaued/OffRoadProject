@@ -2,7 +2,7 @@
 
 A stylized and realistic offroad driving experience built with Unity, featuring advanced vehicle physics and dynamic camera systems.
 
-## ⚠️ Project Status
+## Project Status
 
 Currently in active development. Core vehicle physics and camera system are functional.
 
@@ -14,7 +14,7 @@ Currently in active development. Core vehicle physics and camera system are func
 
 ## Technical Stack
 
-- **Engine**: Unity 2022+ LTS
+- **Engine**: Unity 6000.3.5f2 
 - **Physics**: WheelCollider suspension system
 - **Camera**: Cinemachine
 - **Language**: C#
@@ -40,5 +40,3 @@ Currently in active development. Core vehicle physics and camera system are func
 
 Santino Aued - Game Development Student at UTN Buenos Aires
 ---
-
-*Portfolio project showcasing vehicle physics implementation and state machine design patterns.*
