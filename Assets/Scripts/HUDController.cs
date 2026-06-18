@@ -1,11 +1,11 @@
 using UnityEngine;
 
-// simple dashboard UI.
 public class HUDController : MonoBehaviour
 {
     [Header("Vehicle")]
     [SerializeField] private Rigidbody vehicleRigidbody;
 
+    // speedometer
     [Header("Speedometer")]
     [Tooltip("Use the needle pivot object here")]
     [SerializeField] private RectTransform needle;
@@ -25,6 +25,29 @@ public class HUDController : MonoBehaviour
     [Tooltip("Higher values make the needle react faster")]
     [SerializeField] private float needleSmoothness = 8f;
 
+    // rpm
+    [Header("RPM Gauge")]
+    [SerializeField] private VehicleController vehicleController;
+
+    [Tooltip("Use the needle pivot object here")]
+    [SerializeField] private RectTransform rpmNeedle;
+
+    [Tooltip("RPM shown when the needle is at the minimum angle")]
+    [SerializeField] private float minRpmValue = 0f;
+
+    [Tooltip("RPM shown when the needle is at the maximum angle")]
+    [SerializeField] private float maxRpmValue = 8000f;
+
+    [Tooltip("Needle angle at 0 RPM")]
+    [SerializeField] private float minRpmNeedleAngle = 130f;
+
+    [Tooltip("Needle angle at max RPM")]
+    [SerializeField] private float maxRpmNeedleAngle = -130f;
+
+    [Tooltip("Higher values make the needle react faster")]
+    [SerializeField] private float rpmNeedleSmoothness = 8f;
+
+    private float currentRpmNeedleAngle;
     private float currentNeedleAngle;
 
     private void Awake()
@@ -32,6 +55,11 @@ public class HUDController : MonoBehaviour
         if (needle != null)
         {
             currentNeedleAngle = needle.localEulerAngles.z;
+        }
+
+        if (rpmNeedle != null)
+        {
+            currentRpmNeedleAngle = rpmNeedle.localEulerAngles.z;
         }
     }
 
@@ -50,6 +78,19 @@ public class HUDController : MonoBehaviour
         currentNeedleAngle = Mathf.LerpAngle(currentNeedleAngle, targetAngle, smoothStep);
 
         needle.localRotation = Quaternion.Euler(0f, 0f, currentNeedleAngle);
+
+        // rpm
+        if (vehicleController != null && rpmNeedle != null)
+        {
+        float currentRpm = vehicleController.GetRPM();
+        float rpmPercent = Mathf.InverseLerp(minRpmValue, maxRpmValue, currentRpm);
+        float targetRpmAngle = Mathf.Lerp(minRpmNeedleAngle, maxRpmNeedleAngle, rpmPercent);
+
+        float rpmSmoothStep = 1f - Mathf.Exp(-rpmNeedleSmoothness * Time.deltaTime);
+        currentRpmNeedleAngle = Mathf.LerpAngle(currentRpmNeedleAngle, targetRpmAngle, rpmSmoothStep);
+
+        rpmNeedle.localRotation = Quaternion.Euler(0f, 0f, currentRpmNeedleAngle);
+        }
     }
 
     private float GetSpeedKmh()

@@ -46,6 +46,16 @@ public class VehicleController : MonoBehaviour
     [SerializeField] private Transform Mesh_RearLeft;
     [SerializeField] private Transform Mesh_RearRight;
 
+    [Header("Engine RPM")]
+    [SerializeField] private float idleRPM = 800f;
+    [SerializeField] private float maxRPM = 8000f;
+    [SerializeField] private float rpmSmoothness = 5f;
+    [Header("Gears (Simple Auto)")]
+    [Tooltip("Velocidades máximas para cada marcha en km/h")]
+    [SerializeField] private float[] gearTopSpeeds = { 20f, 40f, 60f, 80f };
+    private int currentGear = 0;
+
+    private float currentRPM = 0f;
     private float horizontalInput;
     private float forwardInput;
     private bool isBraking;
@@ -67,6 +77,8 @@ public class VehicleController : MonoBehaviour
         forwardInput = Input.GetAxis("Vertical");
         isBraking = Input.GetKey(KeyCode.Space);
         isHandbraking = Input.GetKey(KeyCode.Q);
+
+        UpdateRPM();
     }
 
     private void FixedUpdate()
@@ -130,5 +142,53 @@ public class VehicleController : MonoBehaviour
         col.GetWorldPose(out Vector3 pos, out Quaternion rot);
         mesh.position = pos;
         mesh.rotation = rot;
+    }
+
+    private void UpdateRPM()
+    {
+#if UNITY_6000_0_OR_NEWER
+        float speedKmh = rb.linearVelocity.magnitude * 3.6f;
+#else
+        float speedKmh = rb.velocity.magnitude * 3.6f;
+#endif
+
+        currentGear = 0;
+        for (int i = 0; i < gearTopSpeeds.Length; i++)
+        {
+            if (speedKmh < gearTopSpeeds[i])
+            {
+                currentGear = i;
+                break;
+            }
+
+            if (i == gearTopSpeeds.Length - 1) currentGear = i;
+        }
+
+        float minGearSpeed = (currentGear == 0) ? 0f : gearTopSpeeds[currentGear - 1];
+        float maxGearSpeed = gearTopSpeeds[currentGear];
+
+        float gearFactor = Mathf.InverseLerp(minGearSpeed, maxGearSpeed, speedKmh);
+
+        float targetRPM = Mathf.Lerp(idleRPM, maxRPM, gearFactor);
+
+        if (forwardInput > 0)
+        {
+            float extraRev = (maxRPM - idleRPM) * 0.2f * forwardInput;
+            targetRPM += extraRev;
+        }
+        else if (forwardInput == 0 && speedKmh < 1f)
+        {
+            targetRPM = idleRPM;
+        }
+
+        targetRPM = Mathf.Clamp(targetRPM, idleRPM, maxRPM);
+
+        float rpmDamping = 1f - Mathf.Exp(-rpmSmoothness * Time.deltaTime);
+        currentRPM = Mathf.Lerp(currentRPM, targetRPM, rpmDamping);
+    }
+
+    public float GetRPM()
+    {
+        return currentRPM;
     }
 }
