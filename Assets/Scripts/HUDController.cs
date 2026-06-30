@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HUDController : MonoBehaviour
 {
@@ -47,6 +48,10 @@ public class HUDController : MonoBehaviour
     [Tooltip("Higher values make the needle react faster")]
     [SerializeField] private float rpmNeedleSmoothness = 8f;
 
+    [Header("Vehicle Health")]
+    [SerializeField] private VehicleHealth vehicleHealth;
+    [SerializeField] private Slider healthSlider;
+
     private float currentRpmNeedleAngle;
     private float currentNeedleAngle;
 
@@ -61,6 +66,18 @@ public class HUDController : MonoBehaviour
         {
             currentRpmNeedleAngle = rpmNeedle.localEulerAngles.z;
         }
+
+        if (healthSlider != null)
+            healthSlider.value = 1f;
+
+        if (vehicleHealth != null)
+            vehicleHealth.onHealthChanged.AddListener(OnHealthChanged);
+    }
+
+    private void OnHealthChanged(float normalized)
+    {
+        if (healthSlider != null)
+            healthSlider.value = normalized;
     }
 
     private void Update()
