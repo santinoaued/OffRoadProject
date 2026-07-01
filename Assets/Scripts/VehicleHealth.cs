@@ -44,7 +44,12 @@ public class VehicleHealth : MonoBehaviour
 
     private void Update()
     {
-        if (isDestroyed) return;
+        if (isDestroyed)
+        {
+            Destroy(gameObject);
+        }
+        return;
+
         HandleOverrevDamage();
     }
 
@@ -97,11 +102,6 @@ public class VehicleHealth : MonoBehaviour
             isDestroyed = true;
             onVehicleDestroyed?.Invoke();
         }
-    }
-
-    private void Destroy()
-    {
-        Destroy(gameObject);
     }
 
     public float GetHealthNormalized() => currentHealth / maxHealth;
