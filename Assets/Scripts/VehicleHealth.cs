@@ -48,7 +48,6 @@ public class VehicleHealth : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        return;
 
         HandleOverrevDamage();
     }
