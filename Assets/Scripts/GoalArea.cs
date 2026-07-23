@@ -1,16 +1,15 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
 public class GoalArea : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    [Tooltip("Tag que debe tener el vehiculo del jugador.")]
+    [SerializeField] private string tagJugador = "Player";
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        if (!other.CompareTag(tagJugador)) return;
+
+        GameManager.Instance.AlcanzarMeta();
     }
 }
