@@ -1,30 +1,36 @@
 using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [Header("Configuracion del Timer")]
-    [Tooltip("Tiempo total de la partida en segundos")]
-    [SerializeField] private float tiempoLimite = 120f;
+    [Header("Timer Settings")]
+    [Tooltip("Total match time in seconds")]
+    [SerializeField] private float timeLimit = 120f;
 
-    [Header("Referencias")]
-    [Tooltip("Vehiculo del jugador")]
-    [SerializeField] private GameObject vehiculoJugador;
+    [Header("References")]
+    [Tooltip("Player's vehicle")]
+    [SerializeField] private GameObject playerVehicle;
 
-    [Tooltip("Texto tiempo restante")]
+    [Tooltip("Remaining time text")]
     [SerializeField] private TextMeshProUGUI timerText;
 
-    [Header("Eventos (escalables desde el Inspector)")]
-    [Tooltip("Se dispara cuando el tiempo llega a 0 sin haber alcanzado la meta")]
-    public UnityEvent onTiempoAgotado;
+    [Header("Events (scalable from the Inspector)")]
+    [Tooltip("Fired when time reaches 0 without reaching the goal")]
+    public UnityEvent onTimeExpired;
 
-    [Tooltip("Se dispara cuando el jugador alcanza la meta antes de que se acabe el tiempo")]
-    public UnityEvent onMetaAlcanzada;
+    [Tooltip("Fired when the player reaches the goal before time runs out")]
+    public UnityEvent onGoalReached;
 
-    private float tiempoRestante;
-    private bool partidaEnCurso;
+    [Header("Defeat UI")]
+    [SerializeField] private GameObject defeatPanel;
+    [SerializeField] private GameObject hudPanel;
+
+    private float timeRemaining;
+    private bool isMatchRunning;
+    public bool isMatchOver { get; private set; }
 
     private void Awake()
     {
@@ -39,60 +45,83 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        IniciarPartida();
+        StartMatch();
     }
 
     private void Update()
     {
-        if (!partidaEnCurso) return;
+        if (!isMatchRunning) return;
 
-        tiempoRestante -= Time.deltaTime;
+        timeRemaining -= Time.deltaTime;
 
-        if (tiempoRestante <= 0f)
+        if (timeRemaining <= 0f)
         {
-            tiempoRestante = 0f;
-            ActualizarUI();
-            TiempoAgotado();
+            timeRemaining = 0f;
+            UpdateUI();
+            TimeExpired();
             return;
         }
 
-        ActualizarUI();
+        UpdateUI();
     }
-    public void IniciarPartida()
-    {
-        tiempoRestante = tiempoLimite;
-        partidaEnCurso = true;
-        ActualizarUI();
-    }
-    public void AlcanzarMeta()
-    {
-        if (!partidaEnCurso) return;
 
-        partidaEnCurso = false;
-        onMetaAlcanzada?.Invoke();
-    }
-    private void TiempoAgotado()
+    public void TriggerDefeat()
     {
-        if (!partidaEnCurso) return;
+        Debug.Log("GameManager: TriggerDefeat called");
+        if (isMatchOver) return;
 
-        partidaEnCurso = false;
-        onTiempoAgotado?.Invoke();
+        isMatchRunning = false;
+        isMatchOver = true;
+
+        if (defeatPanel != null)
+            defeatPanel.SetActive(true);
+        if (hudPanel != null)
+            hudPanel.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
-    public void DestruirVehiculo()
+
+    public void StartMatch()
     {
-        if (vehiculoJugador != null)
+        timeRemaining = timeLimit;
+        isMatchRunning = true;
+        UpdateUI();
+    }
+
+    public void ReachGoal()
+    {
+        if (!isMatchRunning) return;
+
+        isMatchRunning = false;
+        onGoalReached?.Invoke();
+    }
+
+    private void TimeExpired()
+    {
+        if (!isMatchRunning) return;
+
+        isMatchRunning = false;
+        onTimeExpired?.Invoke();
+    }
+
+    public void DestroyVehicle()
+    {
+        if (playerVehicle != null)
         {
-            Destroy(vehiculoJugador);
+            Destroy(playerVehicle);
         }
     }
-    private void ActualizarUI()
+
+    private void UpdateUI()
     {
         if (timerText == null) return;
 
-        int minutos = Mathf.FloorToInt(tiempoRestante / 60f);
-        int segundos = Mathf.FloorToInt(tiempoRestante % 60f);
-        timerText.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+        int minutes = Mathf.FloorToInt(timeRemaining / 60f);
+        int seconds = Mathf.FloorToInt(timeRemaining % 60f);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
-    public float TiempoRestante => tiempoRestante;
-    public bool PartidaEnCurso => partidaEnCurso;
+
+    public float TimeRemaining => timeRemaining;
+    public bool IsMatchRunning => isMatchRunning;
 }

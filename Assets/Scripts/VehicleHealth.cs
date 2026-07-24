@@ -99,6 +99,7 @@ public class VehicleHealth : MonoBehaviour
         if (currentHealth <= 0f)
         {
             isDestroyed = true;
+            Debug.Log("VehicleHealth: vehicle destroyed, invoking event");
             onVehicleDestroyed?.Invoke();
         }
     }

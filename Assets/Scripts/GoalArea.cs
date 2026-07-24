@@ -10,6 +10,6 @@ public class GoalArea : MonoBehaviour
     {
         if (!other.CompareTag(tagJugador)) return;
 
-        GameManager.Instance.AlcanzarMeta();
+        GameManager.Instance.ReachGoal();
     }
 }

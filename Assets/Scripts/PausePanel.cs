@@ -19,6 +19,7 @@ public class PausePanel : MonoBehaviour
 
     public void TogglePause() 
     {
+        if (GameManager.Instance.isMatchOver) return;
         pause = !pause;
         pausePanel.SetActive(pause);
         Time.timeScale = pause ? 0f : 1f;
