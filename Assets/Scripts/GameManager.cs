@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
 
+// this script contains the victory and defeat conditions and other details about the current game
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -24,13 +25,16 @@ public class GameManager : MonoBehaviour
     [Tooltip("Fired when the player reaches the goal before time runs out")]
     public UnityEvent onGoalReached;
 
-    [Header("Defeat UI")]
+    [Header("UI")]
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private GameObject hudPanel;
+    [SerializeField] private GameObject victoryPanel;
 
     private float timeRemaining;
     private bool isMatchRunning;
     public bool isMatchOver { get; private set; }
+
+    private VehicleHealth playerVehicleHealth;
 
     private void Awake()
     {
@@ -41,6 +45,9 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        if (playerVehicle != null)
+            playerVehicleHealth = playerVehicle.GetComponent<VehicleHealth>();
     }
 
     private void Start()
@@ -91,9 +98,23 @@ public class GameManager : MonoBehaviour
 
     public void ReachGoal()
     {
-        if (!isMatchRunning) return;
+        if (isMatchOver) return;
 
         isMatchRunning = false;
+        isMatchOver = true;
+
+        if (playerVehicleHealth != null)
+            playerVehicleHealth.DisableDamage();
+
+        if (victoryPanel != null)
+            victoryPanel.SetActive(true);
+
+        if (hudPanel != null)
+            hudPanel.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         onGoalReached?.Invoke();
     }
 

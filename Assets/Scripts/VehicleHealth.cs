@@ -35,6 +35,7 @@ public class VehicleHealth : MonoBehaviour
 
     private VehicleController vehicleController;
     private bool isDestroyed = false;
+    private bool damageEnabled = true;
 
     private void Awake()
     {
@@ -91,7 +92,7 @@ public class VehicleHealth : MonoBehaviour
 
     private void ApplyDamage(float amount)
     {
-        if (isDestroyed) return;
+        if (isDestroyed || !damageEnabled) return;
 
         currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
         onHealthChanged?.Invoke(currentHealth / maxHealth);
@@ -99,9 +100,13 @@ public class VehicleHealth : MonoBehaviour
         if (currentHealth <= 0f)
         {
             isDestroyed = true;
-            Debug.Log("VehicleHealth: vehicle destroyed, invoking event");
             onVehicleDestroyed?.Invoke();
         }
+    }
+
+    public void DisableDamage()
+    {
+        damageEnabled = false;
     }
 
     public float GetHealthNormalized() => currentHealth / maxHealth;
