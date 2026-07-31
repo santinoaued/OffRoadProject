@@ -1,37 +1,36 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-// handles vehicle behavior: motor, steering, brakes, and wheel visuals.
-// built around WheelColliders.
 public class VehicleController : MonoBehaviour
 {
+    [Header("Input Actions")]
+    [SerializeField] private InputActionReference moveAction;
+    [SerializeField] private InputActionReference brakeAction;
+    [SerializeField] private InputActionReference handbrakeAction;
+
     [Header("Engine")]
     [Range(500f, 5000f)]
     [SerializeField] private float motorTorque = 1500f;
 
-    [Tooltip("Top speed in km/h")]
     [Range(20f, 200f)]
     [SerializeField] private float maxSpeed = 80f;
 
     [Header("Brakes")]
-    [Tooltip("Brake force when pressing Space")]
     [Range(0f, 10000f)]
     [SerializeField] private float brakeTorque = 4000f;
 
-    [Tooltip("Handbrake force, applied to rear wheels only")]
     [Range(0f, 10000f)]
     [SerializeField] private float handbrakeTorque = 6000f;
 
     [Header("Steering")]
-    [Tooltip("Maximum angle the front wheels can turn")]
     [Range(10f, 45f)]
     [SerializeField] private float maxSteerAngle = 30f;
 
     [Header("Traction")]
-    [Tooltip("4WD: all four wheels get motor torque")]
     [SerializeField] private bool is4WD = false;
 
     [Header("Physics")]
-    [Tooltip("Lowers the center of mass. Negative Y = more stable, less rollover")]
+    [Tooltip("lowers the center of mass. Negative Y = more stable, less rollover")]
     [SerializeField] private Vector3 centerOfMassOffset = new Vector3(0f, -0.5f, 0f);
 
     [Header("Wheel Colliders")]
@@ -51,7 +50,6 @@ public class VehicleController : MonoBehaviour
     [SerializeField] private float maxRPM = 8000f;
     [SerializeField] private float rpmSmoothness = 5f;
     [Header("Gears (Simple Auto)")]
-    [Tooltip("Velocidades máximas para cada marcha en km/h")]
     [SerializeField] private float[] gearTopSpeeds = { 20f, 40f, 60f, 80f };
     private int currentGear = 0;
 
@@ -61,6 +59,20 @@ public class VehicleController : MonoBehaviour
     private bool isBraking;
     private bool isHandbraking;
     private Rigidbody rb;
+
+    private void OnEnable()
+    {
+        moveAction.action.Enable();
+        brakeAction.action.Enable();
+        handbrakeAction.action.Enable();
+    }
+
+    private void OnDisable()
+    {
+        moveAction.action.Disable();
+        brakeAction.action.Disable();
+        handbrakeAction.action.Disable();
+    }
 
     private void Start()
     {
@@ -73,10 +85,11 @@ public class VehicleController : MonoBehaviour
 
     private void Update()
     {
-        horizontalInput = Input.GetAxis("Horizontal");
-        forwardInput = Input.GetAxis("Vertical");
-        isBraking = Input.GetKey(KeyCode.Space);
-        isHandbraking = Input.GetKey(KeyCode.Q);
+        Vector2 move = moveAction.action.ReadValue<Vector2>();
+        horizontalInput = move.x;
+        forwardInput = move.y;
+        isBraking = brakeAction.action.IsPressed();
+        isHandbraking = handbrakeAction.action.IsPressed();
 
         UpdateRPM();
     }
