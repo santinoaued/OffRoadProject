@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using TMPro;
 
 // this script contains the victory and defeat conditions and other details about the current game
@@ -8,21 +9,16 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [Header("Timer Settings")]
-    [Tooltip("Total match time in seconds")]
     [SerializeField] private float timeLimit = 120f;
 
     [Header("References")]
-    [Tooltip("Player's vehicle")]
     [SerializeField] private GameObject playerVehicle;
 
-    [Tooltip("Remaining time text")]
     [SerializeField] private TextMeshProUGUI timerText;
 
     [Header("Events (scalable from the Inspector)")]
-    [Tooltip("Fired when time reaches 0 without reaching the goal")]
     public UnityEvent onTimeExpired;
 
-    [Tooltip("Fired when the player reaches the goal before time runs out")]
     public UnityEvent onGoalReached;
 
     [Header("UI")]
@@ -30,11 +26,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject hudPanel;
     [SerializeField] private GameObject victoryPanel;
 
+    [Header("UI - Gamepad Navigation")]
+    [SerializeField] private GameObject defeatFirstSelectedButton;
+    [SerializeField] private GameObject victoryFirstSelectedButton;
+
     private float timeRemaining;
     private bool isMatchRunning;
-    public bool isMatchOver { get; private set; }
-
     private VehicleHealth playerVehicleHealth;
+    public bool isMatchOver { get; private set; }
 
     private void Awake()
     {
@@ -74,7 +73,6 @@ public class GameManager : MonoBehaviour
 
     public void TriggerDefeat()
     {
-        Debug.Log("GameManager: TriggerDefeat called");
         if (isMatchOver) return;
 
         isMatchRunning = false;
@@ -87,6 +85,8 @@ public class GameManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        SelectFirstButton(defeatFirstSelectedButton);
     }
 
     public void StartMatch()
@@ -115,6 +115,8 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        SelectFirstButton(victoryFirstSelectedButton);
+
         onGoalReached?.Invoke();
     }
 
@@ -141,6 +143,14 @@ public class GameManager : MonoBehaviour
         int minutes = Mathf.FloorToInt(timeRemaining / 60f);
         int seconds = Mathf.FloorToInt(timeRemaining % 60f);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    private void SelectFirstButton(GameObject button)
+    {
+        if (button == null || EventSystem.current == null) return;
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(button);
     }
 
     public float TimeRemaining => timeRemaining;
