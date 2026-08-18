@@ -11,6 +11,12 @@ public class PausePanel : MonoBehaviour
     [Tooltip("First button to select when the pause panel opens (for gamepad navigation)")]
     [SerializeField] private GameObject firstSelectedButton;
 
+    [Header("Options Panel")]
+    [SerializeField] private GameObject optionsPanel;
+
+    [Tooltip("First selectable element inside the options panel (for gamepad navigation)")]
+    [SerializeField] private GameObject firstSelectedOptionsElement;
+
     [Header("Scene Names")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
@@ -19,6 +25,7 @@ public class PausePanel : MonoBehaviour
     [SerializeField] private InputActionReference pauseAction;
 
     private bool pause = false;
+    private bool optionsOpen = false;
 
     private void OnEnable()
     {
@@ -34,12 +41,20 @@ public class PausePanel : MonoBehaviour
 
     private void OnPausePressed(InputAction.CallbackContext context)
     {
+        if (optionsOpen)
+        {
+            CloseOptions();
+            return;
+        }
+
         TogglePause();
     }
 
     public void TogglePause()
     {
         if (GameManager.Instance.isMatchOver) return;
+        if (optionsOpen) return;
+
         pause = !pause;
         pausePanel.SetActive(pause);
         Time.timeScale = pause ? 0f : 1f;
@@ -53,11 +68,36 @@ public class PausePanel : MonoBehaviour
         }
         else
         {
+            optionsOpen = false;
+            optionsPanel.SetActive(false);
+
             EventSystem.current.SetSelectedGameObject(null);
         }
     }
 
     public void Resume() => TogglePause();
+
+    public void OpenOptions()
+    {
+        optionsOpen = true;
+
+        pausePanel.SetActive(false);
+        optionsPanel.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstSelectedOptionsElement);
+    }
+
+    public void CloseOptions()
+    {
+        optionsOpen = false;
+
+        optionsPanel.SetActive(false);
+        pausePanel.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstSelectedButton);
+    }
 
     public void Restart()
     {
