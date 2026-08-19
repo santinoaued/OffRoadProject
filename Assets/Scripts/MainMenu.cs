@@ -12,24 +12,21 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private GameObject creditsPanel;
     [SerializeField] private GameObject versionPanel;
+    [SerializeField] private GameObject controlsPanel;
 
     [Header("Gamepad Navigation - Main Menu")]
-    [Tooltip("Botón seleccionado apenas arranca el menú (ej. PlayButton)")]
     [SerializeField] private GameObject firstSelectedMainMenuButton;
 
     [Header("Gamepad Navigation - Panels")]
-    [Tooltip("Primer elemento a seleccionar dentro de OptionsPanel (ej. Quality Dropdown)")]
     [SerializeField] private GameObject optionsFirstSelected;
-    [Tooltip("Primer elemento a seleccionar dentro de CreditsPanel (ej. su botón Close)")]
     [SerializeField] private GameObject creditsFirstSelected;
-    [Tooltip("Primer elemento a seleccionar dentro de VersionPanel (ej. su botón Close)")]
     [SerializeField] private GameObject versionFirstSelected;
+    [SerializeField] private GameObject controlsFirstSelected;
 
     [Header("Input")]
-    [Tooltip("Acción de Cancelar: Escape (teclado) / East button - B,Circle (gamepad)")]
     [SerializeField] private InputActionReference cancelAction;
 
-    private GameObject[] AllPanels => new[] { optionsPanel, creditsPanel, versionPanel };
+    private GameObject[] AllPanels => new[] { optionsPanel, creditsPanel, versionPanel, controlsPanel };
     private GameObject lastSelectedBeforePanel;
 
     private void OnEnable()
@@ -92,6 +89,11 @@ public class MainMenu : MonoBehaviour
         OpenPanel(versionPanel, versionFirstSelected);
     }
 
+    public void OpenControls()
+    {
+        OpenPanel(controlsPanel, controlsFirstSelected);
+    }
+
     public void ClosePanel()
     {
         foreach (var panel in AllPanels)
@@ -131,9 +133,6 @@ public class MainMenu : MonoBehaviour
 
     public void Quit()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
         Application.Quit();
     }
 }
